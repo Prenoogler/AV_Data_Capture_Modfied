@@ -1,3 +1,4 @@
+import requests
 import sys
 sys.path.append('../')
 import json
@@ -5,9 +6,17 @@ from bs4 import BeautifulSoup
 from lxml import html
 from ADC_function import post_html
 
+suren=['luxu','mium','sim','simm','gana','maan','heyzo','oretd']
+
+
 
 def main(number: str) -> json:
-    result = post_html(url="https://www.jav321.com/search", query={"sn": number})
+    result = requests.post(url="https://www.jav321.com/search", data={"sn": number})
+    fanhaozimu=''.join(x for x in number if x.isalpha())
+    if fanhaozimu.lower() in suren:
+        imagecutswitch=3
+    else:
+        imagecutswitch=1
     soup = BeautifulSoup(result.text, "html.parser")
     lx = html.fromstring(str(soup))
 
@@ -19,15 +28,15 @@ def main(number: str) -> json:
             "outline": get_outline(lx),
             "director": "",
             "cover": get_cover(lx),
-            "imagecut": 1,
+            "imagecut": imagecutswitch,
             "actor_photo": "",
             "website": result.url,
             "source": "jav321.py",
+            "cover_small":get_cover_small(lx),
             **data,
         }
     else:
         dic = {}
-
     return json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ':'))
 
 
@@ -82,11 +91,18 @@ def get_text_info(h: str) -> str:
 
 def get_cover(lx: html.HtmlElement) -> str:
     return lx.xpath("/html/body/div[2]/div[2]/div[1]/p/a/img/@src")[0]
-
+    
+def get_cover_small(lx: html.HtmlElement) -> str:
+    smallcoveradd=lx.xpath('/html/body/div[2]/div[1]/div[1]/div[2]/div[1]/div[1]/img/@src')[0]
+    if 'pf_o1' in smallcoveradd:
+        smallcoveradd=smallcoveradd.replace('pf_o1','pf_e')
+    return smallcoveradd
 
 def get_outline(lx: html.HtmlElement) -> str:
-    return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[3]/div/text()")[0]
-
+    try:
+        return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[3]/div/text()")[0]
+    except:
+        return('none')
 def get_series2(lx: html.HtmlElement) -> str:
     return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[1]/div[2]/a[11]/text()")[0]
 
