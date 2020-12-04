@@ -65,6 +65,7 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # ä»ŽJSONè¿
 
     # if the input file name matches certain rules,
     # move some web service to the beginning of the list
+    '''
     if "avsox" in sources and (re.match(r"^\d{5,}", file_number) or
         "HEYZO" in file_number or "heyzo" in file_number or "Heyzo" in file_number
     ):
@@ -88,7 +89,7 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # ä»ŽJSONè¿
         # if conf.debug() == True:
         #     print('[+]select dlsite')
         sources.insert(0, sources.pop(sources.index("dlsite")))
-
+    '''
     json_data = {}
     for source in sources:
         try:

@@ -68,9 +68,12 @@ def create_data_and_move(file_path: str, c: config.Config,debug):
     n_number = get_number(debug,file_path)
 
     if debug == True:
-        print("[!]Making Data for [{}], the number is [{}]".format(file_path, n_number))
-        core_main(file_path, n_number, c)
-        print("[*]======================================================")
+        try:
+            print("[!]Making Data for [{}], the number is [{}]".format(file_path, n_number))
+            core_main(file_path, n_number, c)
+            print("[*]======================================================")
+        except:
+            pass
     else:
         try:
             print("[!]Making Data for [{}], the number is [{}]".format(file_path, n_number))
