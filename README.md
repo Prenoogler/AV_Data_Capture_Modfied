@@ -1,3 +1,9 @@
+基于AV_Data_Capture修改
+1.重点提高了jav321的可用性
+2.针对'luxu','mium','sim','simm','gana','maan','heyzo','oretd'等素人影片，使其能够直接搜刮高清封面poster
+
+随缘更新...
+
 # AV Data Capture (CLI)
 
 CLI 版本  
