@@ -4,9 +4,12 @@
 
 1.重点提高了jav321的可用性
 
-2.针对'luxu','mium','sim','simm','gana','maan','heyzo','oretd'等素人影片，使其能够直接搜刮高清封面poster
+2.针对'luxu','mium','sim','simm','gana','maan','heyzo','oretd'等素人影片，使其能够直接搜刮高清封面poster，自动处理封面
 
 3.修复Debug下程序闪退崩溃的bug
+
+4.增加有道翻译
+
 
 随缘更新...
 
