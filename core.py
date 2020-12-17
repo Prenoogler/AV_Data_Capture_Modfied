@@ -4,6 +4,11 @@ import re
 import shutil
 import platform
 
+from PIL import Image,ImageFilter
+import sys
+from aip import AipBodyAnalysis
+import time
+
 from PIL import Image
 from ADC_function import *
 
@@ -65,6 +70,20 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
 
     # if the input file name matches certain rules,
     # move some web service to the beginning of the list
+
+    suren=['luxu','mium','sim','simm','gana','maan','heyzo','oretd','mmgh','msfh']
+
+    fanhaozimu=''.join(x for x in file_number if x.isalpha())
+
+    if "fc2" in sources and ("fc2" in file_number or "FC2" in file_number
+    ):
+        # if conf.debug() == True:
+        #     print('[+]select fc2')
+        sources.insert(0, sources.pop(sources.index("fc2")))
+    elif 'jav321' in sources and (fanhaozimu.lower() in suren):
+        sources.insert(0, sources.pop(sources.index("jav321")))
+    
+
     '''
     if "avsox" in sources and (re.match(r"^\d{5,}", file_number) or
         "HEYZO" in file_number or "heyzo" in file_number or "Heyzo" in file_number
@@ -100,10 +119,10 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
             if get_data_state(json_data):
                 break
         except:
-            break
+            continue
 
     # Return if data not found in all sources
-    if not json_data:
+    if (not json_data) or (json_data.get('title')==''):
         print('[-]Movie Data not found!')
         moveFailedFolder(filepath, conf.failed_folder())
         return
@@ -214,6 +233,9 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
     if conf.is_transalte():
         translate_values = conf.transalte_values().split(",")
         for translate_value in translate_values:
+            if json_data[translate_value]=='':
+                print('检测到翻译的文本为空直接跳过以免引起错误')
+                continue #如果检测到翻译的文本为空直接跳过以免引起错误
             json_data[translate_value] = translate(json_data[translate_value])
     naming_rule=""
     for i in conf.naming_rule().split("+"):
@@ -408,7 +430,17 @@ def print_files(path, c_word, naming_rule, part, cn_sub, json_data, filepath, fa
         print("[-]Write Failed!")
         moveFailedFolder(filepath, failed_folder)
         return
-
+def fix_size(path):
+    pic = Image.open(path)
+    (wf,hf) = pic.size
+    if not 2/3-0.1 <= wf/hf <= 2/3+0.2:
+        print('[+]素人Poster正在处理')
+        fixed_pic = pic.resize((int(wf),int(3/2*wf))) #拉伸图片
+        fixed_pic = fixed_pic.filter(ImageFilter.GaussianBlur(radius=50)) #高斯平滑滤镜
+        fixed_pic.paste(pic,(0,int((3/2*wf-hf)/2))) #粘贴原图
+        fixed_pic.save(path, quality=95)
+    else:
+        print('[+]素人Poster不需处理')
 
 def cutImage(imagecut, path, number, c_word):
     if imagecut == 1: # 剪裁大封面
@@ -554,7 +586,7 @@ def core_main(file_path, number_th, conf: config.Config):
 
     # 创建文件夹
     path = create_folder(conf.success_folder(), json_data['location_rule'], json_data, conf)
-
+    
     # main_mode
     #  1: 刮削模式 / Scraping mode
     #  2: 整理模式 / Organizing mode
@@ -565,7 +597,7 @@ def core_main(file_path, number_th, conf: config.Config):
         # 检查小封面, 如果image cut为3，则下载小封面
         if imagecut == 3:
             small_cover_check(path, number, json_data['cover_small'], c_word, conf, filepath, conf.failed_folder())
-
+            fix_size(path + '/' + number + c_word + '-poster.jpg')
         # creatFolder会返回番号路径
         image_download(json_data['cover'], number, c_word, path, conf, filepath, conf.failed_folder())
 

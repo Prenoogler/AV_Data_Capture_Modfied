@@ -67,37 +67,29 @@ def create_data_and_move(file_path: str, c: config.Config,debug):
     # Normalized number, eg: 111xxx-222.mp4 -> xxx-222.mp4
     n_number = get_number(debug,file_path)
 
-    if debug == True:
-        try:
-            print("[!]Making Data for [{}], the number is [{}]".format(file_path, n_number))
-            core_main(file_path, n_number, c)
-            print("[*]======================================================")
-        except:
-            pass
-    else:
-        try:
-            print("[!]Making Data for [{}], the number is [{}]".format(file_path, n_number))
-            core_main(file_path, n_number, c)
-            print("[*]======================================================")
-        except Exception as err:
-            print("[-] [{}] ERROR:".format(file_path))
-            print('[-]', err)
+    try:
+        print("[!]Making Data for [{}], the number is [{}]".format(file_path, n_number))
+        core_main(file_path, n_number, c)
+        print("[*]======================================================")
+    except Exception as err:
+        print("[-] [{}] ERROR:".format(file_path))
+        print('[-]', err,'出现错误')
 
-            # 3.7.2 New: Move or not move to failed folder.
-            if c.failed_move() == False:
-                if c.soft_link():
-                    print("[-]Link {} to failed folder".format(file_path))
-                    os.symlink(file_path, str(os.getcwd()) + "/" + conf.failed_folder() + "/")
-            elif c.failed_move() == True:
-                if c.soft_link():
-                    print("[-]Link {} to failed folder".format(file_path))
-                    os.symlink(file_path, str(os.getcwd()) + "/" + conf.failed_folder() + "/")
-                else:
-                    try:
-                        print("[-]Move [{}] to failed folder".format(file_path))
-                        shutil.move(file_path, str(os.getcwd()) + "/" + conf.failed_folder() + "/")
-                    except Exception as err:
-                        print('[!]', err)
+        # 3.7.2 New: Move or not move to failed folder.
+        if c.failed_move() == False:
+            if c.soft_link():
+                print("[-]Link {} to failed folder".format(file_path))
+                os.symlink(file_path, str(os.getcwd()) + "/" + conf.failed_folder() + "/")
+        elif c.failed_move() == True:
+            if c.soft_link():
+                print("[-]Link {} to failed folder".format(file_path))
+                os.symlink(file_path, str(os.getcwd()) + "/" + conf.failed_folder() + "/")
+            else:
+                try:
+                    print("[-]Move [{}] to failed folder".format(file_path))
+                    shutil.move(file_path, str(os.getcwd()) + "/" + conf.failed_folder() + "/")
+                except Exception as err:
+                    print('[!]', err)
 
 def create_data_and_move_with_custom_number(file_path: str, c: config.Config, custom_number=None):
     try:

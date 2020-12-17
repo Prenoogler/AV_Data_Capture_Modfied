@@ -456,10 +456,72 @@ def translateTag_to_sc(tag):
     else:
         return tag
 
+#有道翻译部分开始
+ 
+import sys
+import uuid
+import requests
+import hashlib
+import time
+from importlib import reload
+
+import time
+
+reload(sys)
+
+YOUDAO_URL = 'https://openapi.youdao.com/api'
+APP_KEY = '192ea55431804a8d'
+APP_SECRET = 'QwlHKdBTIPBqOP3ACftnvIru8LXgJGeY'
+
+
+def encrypt(signStr):
+    hash_algorithm = hashlib.sha256()
+    hash_algorithm.update(signStr.encode('utf-8'))
+    return hash_algorithm.hexdigest()
+
+
+def truncate(q):
+    if q is None:
+        return None
+    size = len(q)
+    return q if size <= 20 else q[0:10] + str(size) + q[size - 10:size]
+
+
+def do_request(data):
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    return requests.post(YOUDAO_URL, data=data, headers=headers)
+
+
+def translate(src:str,target_language:str="zh-CHS",):
+    q = src
+
+    data = {}
+    data['from'] = 'auto'
+    data['to'] = target_language
+    data['signType'] = 'v3'
+    curtime = str(int(time.time()))
+    data['curtime'] = curtime
+    salt = str(uuid.uuid1())
+    signStr = APP_KEY + truncate(q) + salt + curtime + APP_SECRET
+    sign = encrypt(signStr)
+    data['appKey'] = APP_KEY
+    data['q'] = q
+    data['salt'] = salt
+    data['sign'] = sign
+
+    response = do_request(data)
+    translate_list = response.json()["translation"]
+    return "".join(translate_list)
+#有道翻译部分结束
+'''
+#谷歌翻译部分开始
+
 def translate(src:str,target_language:str="zh_cn"):
     url = "https://translate.google.cn/translate_a/single?client=gtx&dt=t&dj=1&ie=UTF-8&sl=auto&tl=" + target_language + "&q=" + src
     result = get_html(url=url,return_type="object")
-
     translate_list = [i["trans"] for i in result.json()["sentences"]]
-
     return "".join(translate_list)
+
+#谷歌翻译部分结束
+'''
+
