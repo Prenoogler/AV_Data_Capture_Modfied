@@ -1,7 +1,8 @@
 import requests
 from lxml import etree
-
+import json
 import config
+import zhconv
 
 SUPPORT_PROXY_TYPE = ("http", "socks5", "socks5h")
 
@@ -149,7 +150,7 @@ def translateTag_to_sc(tag):
                     '頸鏈': '颈链', '短褲': '短裤', '美人': '美人', '連褲襪': '连裤袜', '裙子': '裙子', '浴衣和服': '浴衣和服',
                     '泳衣': '泳衣', '網襪': '网袜', '眼罩': '眼罩', '圍裙': '围裙', '比基尼': '比基尼', '情趣內衣': '情趣内衣',
                     '迷你裙': '迷你裙', '套裝': '套装', '眼鏡': '眼镜', '丁字褲': '丁字裤', '陽具腰帶': '阳具腰带', '男装': '男装',
-                    '襪': '袜',
+                    '襪': '袜','丝袜':'连裤袜',
 
                     '美肌': '美肌', '屁股': '屁股', '美穴': '美穴', '黑髮': '黑发', '嬌小': '娇小', '曬痕': '晒痕',
                     'F罩杯': 'F罩杯', 'E罩杯': 'E罩杯', 'D罩杯': 'D罩杯', '素顏': '素颜', '貓眼': '猫眼', '捲髮': '捲发',
@@ -180,7 +181,7 @@ def translateTag_to_sc(tag):
                     '肛門': '肛门', '拘束': '拘束', '多P': '多P', '潤滑劑': '润滑剂', '攝影': '摄影', '野外': '野外',
                     '陰道觀察': '阴道观察', 'SM': 'SM', '灌入精液': '灌入精液', '受虐': '受虐', '綁縛': '绑缚', '偷拍': '偷拍',
                     '異物插入': '异物插入', '電話': '电话', '公寓': '公寓', '遠程操作': '远程操作', '偷窺': '偷窥', '踩踏': '踩踏',
-                    '無套': '无套',
+                    '無套': '无套', 'パンスト':'连裤袜',
 
                     '企劃物': '企划物', '獨佔動畫': '独佔动画', '10代': '10代', '1080p': 'XXXX', '人氣系列': '人气系列', '60fps': 'XXXX',
                     '超VIP': '超VIP', '投稿': '投稿', 'VIP': 'VIP', '椅子': '椅子', '風格出眾': '风格出众', '首次作品': '首次作品',
@@ -245,7 +246,7 @@ def translateTag_to_sc(tag):
 
                     '合作作品': '合作作品', '恐怖': '恐怖', '給女性觀眾': '女性向', '教學': '教学', 'DMM專屬': 'DMM专属', 'R-15': 'R-15',
                     'R-18': 'R-18', '戲劇': '戏剧', '3D': '3D', '特效': '特效', '故事集': '故事集', '限時降價': '限时降价',
-                    '複刻版': '复刻版', '戲劇x': '戏剧', '戀愛': '恋爱', '高畫質': 'xxx', '主觀視角': '主观视角', '介紹影片': '介绍影片',
+                    '複刻版': '复刻版', '戲劇x': '戏剧', '戀愛': '恋爱', '高畫質': '高画质', '主觀視角': '主观视角', '介紹影片': '介绍影片',
                     '4小時以上作品': '4小时以上作品', '薄馬賽克': '薄马赛克', '經典': '经典', '首次亮相': '首次亮相', '數位馬賽克': '数位马赛克', '投稿': '投稿',
                     '纪录片': '纪录片', '國外進口': '国外进口', '第一人稱攝影': '第一人称摄影', '業餘': '业余', '局部特寫': '局部特写', '獨立製作': '独立制作',
                     'DMM獨家': 'DMM独家', '單體作品': '单体作品', '合集': '合集', '高清': 'xxx', '字幕': 'xxx', '天堂TV': '天堂TV',
@@ -342,7 +343,7 @@ def translateTag_to_sc(tag):
                     'ウェイトレス': '服务员', '受付嬢': '接待员', 'エステ': 'Este', 'M男': 'M人', 'M女': 'M女', 'OL':
                         'OL', 'お母さん': '妈妈', '女将・女主人': '房东/情妇', '幼なじみ': '儿时的朋友', 'お爺ちゃん': '爷爷', 'お嬢様・令嬢':
                         '女士/女儿', 'オタク': '极客', 'オナサポ': '奥纳萨波', 'お姉さん': '姐姐', 'お婆ちゃん': '祖母', '叔母さん': '阿姨',
-                    'お姫様': '公主', 'お風呂': '浴', '温泉': '温泉', '女教師': '女老师', '女上司': '女老板', '女戦士': '女战士',
+                    'お姫様': '公主', 'お風呂': '浴', '温泉': '温泉', '女教師': '女老师', '女上司': '女上司', '女戦士': '女战士',
                     '女捜査官': '女调查员', 'カーセックス': '汽车性', '格闘家': '战斗机', 'カップル': '情侣', '家庭教師': '戴绿帽',
                     '看護婦・ナース': '护士/护士', 'キャバ嬢・風俗嬢': '戴绿帽小姐/海关小姐', 'キャンギャル': '戴绿帽', '近親相姦': '乱伦',
                     '義母': '岳母', '逆ナン': '反向南', 'くノ一': 'Kunoichi', 'コンパニオン': '同伴', '主観': '主观', '職業色々':
@@ -388,7 +389,7 @@ def translateTag_to_sc(tag):
                     '羞恥': '羞耻', '触手': '触觉', '食糞': '食物粪便', 'スカトロ': '蹲', 'スパンキング': '打屁股', '即ハメ':
                         '立即鞍', '脱糞': '排便', '手コキ': '打手枪', 'ディルド': '假阳具', '電マ': '电ma', 'ドラッグ': '拖动', '辱め':
                         '屈辱', '鼻フック': '鼻子钩', 'ハメ撮り': '颜射', '孕ませ': '构思', 'バイブ': '盛传', 'バック': '后背', '罵倒':
-                        '辱骂', 'パイズリ': '乳交', 'フィスト': '拳头', 'フェラ': '吹', 'ぶっかけ': '颜射', '放置': '离开',
+                        '辱骂', 'パイズリ': '乳交', 'フィスト': '拳头', 'フェラ': '口交', 'ぶっかけ': '颜射', '放置': '离开',
                     '放尿・お漏らし': '小便/泄漏', '母乳': '母乳', 'ポルチオ': 'Porchio', '指マン': '手指男人', 'ラブコメ': '爱来',
                     'レズキス': '女同性恋之吻', 'ローション・オイル': '乳液油', 'ローター': '转子', '蝋燭': '蜡烛', '3P・4P':
                         ' 3P / 4P', 'インディーズ': '印度', 'エマニエル': '伊曼妮尔', '期間限定セール': '限时特卖', 'ギリモザ': '最小马赛克',
@@ -409,14 +410,14 @@ def translateTag_to_sc(tag):
                         '新娘子', '潮吹き': '鲸鱼喷水', '熟女': '熟女', '独占配信': '独家发布', '痴女': '痴女', '童顔': '童颜',
                     '競泳・スクール水着': '游泳学校的游泳衣', '素人': '门外汉', 'ベスト・総集編': 'VR', '美乳': '美臀', '美少女': '美腿',
                     '職業色々': '各种职业', '配信専用': '配信专用', '電マ': '电码', '顔射': '颜射', 'アイドル・芸能人': '偶像艺人',
-                    'アクション・格闘': '格斗动作', '足コキ': '脚钩子', '脚フェチ': '脚控', 'アジア女優': '亚洲女演员', '汗だく': '汗流浃背',
+                    'アクション・格闘': '格斗动作', '足コキ': '足交', '脚フェチ': '脚控', 'アジア女優': '亚洲女演员', '汗だく': '汗流浃背',
                     'アナルセックス': '肛门性爱', 'アナル': '肛门', '姉・妹': '姐姐、妹妹', 'Eカップ': 'E罩杯', 'イタズラ': '恶作剧',
                     '異物挿入': '插入异物', 'イメージビデオ': '视频图像', '色白': '白皙', '淫語': '淫语', '淫語モノ': '淫语故事',
                     'インストラクター': '教练', '飲尿': '饮用水', '淫乱・ハード系': '淫乱硬系', 'ウェイトレス': '女服务生', 'Hカップ':
                         'H罩杯', 'SF': 'SF', 'SM': 'SM', 'Fカップ': 'F罩杯', 'M男': 'M男', 'お母さん': '妈妈',
                     '女将・女主人': '女主人', 'お嬢様・令嬢': '大小姐', 'オナニー': '自慰', 'お姉さん': '姐姐', 'オモチャ': '玩具',
                     '温泉': '温泉', '女戦士': '女战士', '女捜査官': '女搜查官', 'カーセックス': '汽车做爱', '介護': '看护', '格闘家':
-                        '格斗家', '家庭教師': '家庭教师', '監禁': '监禁', '看護婦・ナース': '护士护士', '浣腸': '灌肠', '学園もの': '校园剧',
+                        '格斗家', '家庭教師': '家庭教师', '監禁': '监禁', '看護婦・ナース': '护士', '浣腸': '灌肠', '学園もの': '校园剧',
                     '顔面騎乗': '颜面骑乘', '局部アップ': '局部提高', '巨尻': '巨臀', '巨乳フェチ': '巨乳恋物癖', '騎乗位': '骑乘位',
                     'キス': '沙鮻', 'キス・接吻': '接吻', '鬼畜': '鬼畜', '着物・浴衣': '和服、浴衣', '近親相姦': '近亲通奸', '筋肉':
                         '肌肉', '金髪・ブロンド': '金发', '逆ナン': '逆搭讪', '義母': '岳母', 'くノ一': '九一', 'ゲイ・ホモ': '同性恋',
@@ -445,7 +446,7 @@ def translateTag_to_sc(tag):
                         '３P・乱交', '野外露出': '野外・露出', '国外': '海外', 'SM': 'SM', '女士': 'レズ', '动画': 'アニメ', 'BL':
                         'BL', '成人': 'アダルト', '空闲': 'アイドル', '门外汉': '素人', 'cosplay制服': 'コスプレ・制服', '个人摄影':
                         '個人撮影', '不修改': '無修正', '角色扮演': 'コスプレ', '内衣': '下着', '美乳': '美乳', '游泳衣': '水着', '流出':
-                        '流出', '制服': '制服', '小册子': 'パンチラ', '口交': 'フェラ', '模型': 'モデル', '中出': '中出し', '可爱':
+                        '流出', '制服': '制服', '小册子': 'パンチラ', '口交': '口交', '模型': 'モデル', '中出': '中出し', '可爱':
                         '可愛い', '人妻': '人妻', '美少女': '美少女', '原始': 'オリジナル', '贫奶': '貧乳', '自慰': 'オナニー', '菠萝':
                         'パイパン','ロリ':'萝莉','生ハメ':'第一人称',
                     }
@@ -456,7 +457,7 @@ def translateTag_to_sc(tag):
     else:
         return tag
 
-#有道翻译部分开始
+
  
 import sys
 import uuid
@@ -464,14 +465,15 @@ import requests
 import hashlib
 import time
 from importlib import reload
+import random
 
 import time
 
 reload(sys)
 
 YOUDAO_URL = 'https://openapi.youdao.com/api'
-APP_KEY = '192ea55431804a8d'
-APP_SECRET = 'QwlHKdBTIPBqOP3ACftnvIru8LXgJGeY'
+APP_KEY = '替换app_key'
+APP_SECRET = '替换app_secret'
 
 
 def encrypt(signStr):
@@ -491,37 +493,57 @@ def do_request(data):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     return requests.post(YOUDAO_URL, data=data, headers=headers)
 
+def baidu_fanyi(src):
+    salt = str(random.randint(32768, 65536)) 
 
-def translate(src:str,target_language:str="zh-CHS",):
-    q = src
+    sign_raw = '替换appid' + src + salt + '替换key' 
+    sign = hashlib.md5(sign_raw.encode('utf8')).hexdigest()
 
-    data = {}
-    data['from'] = 'auto'
-    data['to'] = target_language
-    data['signType'] = 'v3'
-    curtime = str(int(time.time()))
-    data['curtime'] = curtime
-    salt = str(uuid.uuid1())
-    signStr = APP_KEY + truncate(q) + salt + curtime + APP_SECRET
-    sign = encrypt(signStr)
-    data['appKey'] = APP_KEY
-    data['q'] = q
-    data['salt'] = salt
-    data['sign'] = sign
+    data = {'appid' : '20201223000654333',
+            'q' : src,
+            'from' : 'auto',
+            'to' : 'zh',
+            'salt' : salt,
+            'sign' : sign
+            }
+    url = 'http://api.fanyi.baidu.com/api/trans/vip/translate'
+    
+    response = requests.post(url,data)
+    result = eval(response.text)
+    trans_result = result['trans_result'][0]['dst']
+    print('[+]百度翻译成功')
+    return trans_result
 
-    response = do_request(data)
-    translate_list = response.json()["translation"]
-    return "".join(translate_list)
-#有道翻译部分结束
-'''
-#谷歌翻译部分开始
 
-def translate(src:str,target_language:str="zh_cn"):
-    url = "https://translate.google.cn/translate_a/single?client=gtx&dt=t&dj=1&ie=UTF-8&sl=auto&tl=" + target_language + "&q=" + src
-    result = get_html(url=url,return_type="object")
-    translate_list = [i["trans"] for i in result.json()["sentences"]]
-    return "".join(translate_list)
 
-#谷歌翻译部分结束
-'''
+def translate(src:str):
+    try:
+        return baidu_fanyi(src)
+    except:
+        try:
+            q = src
+
+            data = {}
+            data['from'] = 'auto'
+            data['to'] = "zh-CHS"
+            data['signType'] = 'v3'
+            curtime = str(int(time.time()))
+            data['curtime'] = curtime
+            salt = str(uuid.uuid1())
+            signStr = APP_KEY + truncate(q) + salt + curtime + APP_SECRET
+            sign = encrypt(signStr)
+            data['appKey'] = APP_KEY
+            data['q'] = q
+            data['salt'] = salt
+            data['sign'] = sign
+            response = do_request(data)
+            translate_list = response.json()["translation"]
+            print('[+]有道翻译成功')
+            return "".join(translate_list)
+        except:
+            url = "https://translate.google.cn/translate_a/single?client=gtx&dt=t&dj=1&ie=UTF-8&sl=auto&tl=" + 'zh_cn' + "&q=" + src
+            result = get_html(url=url,return_type="object")
+            translate_list = [i["trans"] for i in result.json()["sentences"]]
+            print('[+]谷歌翻译成功')
+            return "".join(translate_list)
 

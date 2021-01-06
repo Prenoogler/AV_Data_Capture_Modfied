@@ -9,8 +9,13 @@ import sys
 from aip import AipBodyAnalysis
 import time
 
+import time
+from aip import AipBodyAnalysis
+from PIL import Image,ImageFilter
+
 from PIL import Image
 from ADC_function import *
+import zhconv
 
 # =========website========
 from WebCrawler import avsox
@@ -23,6 +28,9 @@ from WebCrawler import mgstage
 from WebCrawler import xcity
 from WebCrawler import javlib
 from WebCrawler import dlsite
+from WebCrawler import fc2club
+from WebCrawler import airav
+from WebCrawler import airavcc
 
 
 def escape_path(path, escape_literals: str):  # Remove escape literals
@@ -47,6 +55,25 @@ def CreatFailedFolder(failed_folder):
             return 
 
 
+from string import punctuation
+
+def quchubiaodian(s):
+    
+    dicts={i:' ' for i in punctuation}
+    punc_table=str.maketrans(dicts)
+    new_s=s.translate(punc_table)
+    new_s=zhconv.convert(new_s,'zh-cn')
+    tihuan={'长裤':'连裤袜','裤子':'连裤袜','紧身裤':'连裤袜','内裤':'连裤袜',
+            '短裤':'连裤袜','面包罢工':'连裤袜','面包超人':'连裤袜','面包师':'连裤袜',
+            '烤面包棒':'连裤袜','面包':'连裤袜','打击乐':'连裤袜','面包服':'连裤袜',
+            '罢工':'连裤袜'}
+    for i in tihuan.keys():
+        if i in new_s:
+            new_s=new_s.replace(i,tihuan[i])
+    return new_s
+
+
+
 def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON返回元数据
     """
     iterate through all services and fetch the data 
@@ -63,6 +90,9 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
         "xcity": xcity.main,
         "javlib": javlib.main,
         "dlsite": dlsite.main,
+        "fc2club": fc2club.main,
+        "airav":airav.main,
+        "airavcc":airavcc.main
     }
 
     # default fetch order list, from the beginning to the end
@@ -71,17 +101,26 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
     # if the input file name matches certain rules,
     # move some web service to the beginning of the list
 
-    suren=['luxu','mium','sim','simm','gana','maan','heyzo','oretd','mmgh','msfh']
+    suren=['luxu','mium','sim','simm','gana','maan','heyzo','ore',
+           'oretd','orec','mmgh','msfh','reg','ntk','ara','dcv','kwp']
 
     fanhaozimu=''.join(x for x in file_number if x.isalpha())
 
-    if "fc2" in sources and ("fc2" in file_number or "FC2" in file_number
+    if ("fc2" or 'fc2club') in sources and ("fc2" in file_number or "FC2" in file_number
     ):
         # if conf.debug() == True:
         #     print('[+]select fc2')
+        sources.insert(0, sources.pop(sources.index("fc2club")))
         sources.insert(0, sources.pop(sources.index("fc2")))
     elif 'jav321' in sources and (fanhaozimu.lower() in suren):
+        sources=['jav321']
+        '''
+        #目前方案是只用jav321避免出现错误，下同
         sources.insert(0, sources.pop(sources.index("jav321")))
+        '''
+    elif 'javdb' in sources and fanhaozimu.lower() in ['aka','geki']:
+        sources=['javdb']
+        #sources.insert(0, sources.pop(sources.index("javdb")))
     
 
     '''
@@ -140,11 +179,23 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
     label = json_data['label']
     series = json_data['series']
     year = json_data['year']
+
+    
     try:
         cover_small = json_data['cover_small']
     except:
         cover_small = ''
-    imagecut = json_data['imagecut']
+    
+
+    if fanhaozimu.lower() in ['k','n','']:
+        imagecut=2
+        print('[!]检测到无码番号，修改imagecut为2，百度AI自动裁剪')
+    else:
+        imagecut = json_data['imagecut']
+        
+
+
+    
     tag = str(json_data['tag']).strip("[ ]").replace("'", '').replace(" ", '').split(',')  # 字符串转列表 @
     actor = str(actor_list).strip("[ ]").replace("'", '').replace(" ", '')
 
@@ -213,13 +264,13 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
 
     # Process only Windows.
     if platform.system() == "Windows":
-        if 'actor' in conf.location_rule() and len(actor) > 100:
-            print(conf.location_rule())
+        if 'actor' in conf.location_rule() and len(actor) > 80:
             location_rule = eval(conf.location_rule().replace("actor","'多人作品'"))
         maxlen = conf.max_title_len()
         if 'title' in conf.location_rule() and len(title) > maxlen:
             shorttitle = title[0:maxlen]
             location_rule = location_rule.replace(title, shorttitle)
+
 
     # 返回处理后的json_data
     json_data['title'] = title
@@ -230,13 +281,13 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
     json_data['location_rule'] = location_rule
     json_data['year'] = year
     json_data['actor_list'] = actor_list
+    json_data['imagecut']=imagecut
     if conf.is_transalte():
         translate_values = conf.transalte_values().split(",")
         for translate_value in translate_values:
             if json_data[translate_value]=='':
-                print('检测到翻译的文本为空直接跳过以免引起错误')
                 continue #如果检测到翻译的文本为空直接跳过以免引起错误
-            json_data[translate_value] = translate(json_data[translate_value])
+            json_data[translate_value] = quchubiaodian(translate(json_data[translate_value]))
     naming_rule=""
     for i in conf.naming_rule().split("+"):
         if i not in json_data:
@@ -283,7 +334,6 @@ def create_folder(success_folder, location_rule, json_data, conf: config.Config)
         except:
             path = success_folder + '/' + location_rule.replace('/[' + number + ']-' + title, "/number")
             path = escape_path(path, conf.escape_literals())
-
             os.makedirs(path)
     return path
 
@@ -442,6 +492,33 @@ def fix_size(path):
     else:
         print('[+]素人Poster不需处理')
 
+def bdcut(path):
+    try:
+        pic = Image.open(path)
+        if pic.mode == "P": pic = pic.convert('RGB') # 有些图片有P通道，base编码后会出问题
+        (wf,hf) = pic.size
+        BD_VIP='否'
+        BD_AI_client = AipBodyAnalysis('替换appid','替换apikey','替换secrekey')
+        with open(path, 'rb') as fp:
+                x_nose = int(BD_AI_client.bodyAnalysis(fp.read())["person_info"][0]['body_parts']['nose']['x']) # 返回鼻子横坐标
+        if BD_VIP == '否':
+                time.sleep(0.4) # 免费用户QPS=2
+        else:
+                time.sleep( 1/int(1.1*BD_VIP) )
+        if x_nose + 1/3*hf > wf: # 判断鼻子在图整体的位置
+                x_left = wf-2/3*hf # 以右为边
+        elif x_nose - 1/3*hf < 0:
+                x_left = 0 # 以左为边
+        else:
+                x_left = x_nose-1/3*hf # 以鼻子为中线向两边扩展
+        fixed_pic = pic.crop((x_left,0,x_left+2/3*hf,hf))
+        fixed_pic.save(path.replace('fanart','poster'), quality=95)
+        print('[+]百度AI裁剪操作成功')
+    except:
+        imagecut=1
+        print('[-] '+ path +' AI 分析失败，跳过 AI 直接裁剪。\n')
+
+
 def cutImage(imagecut, path, number, c_word):
     if imagecut == 1: # 剪裁大封面
         try:
@@ -594,15 +671,24 @@ def core_main(file_path, number_th, conf: config.Config):
         if multi_part == 1:
             number += part  # 这时number会被附加上CD1后缀
 
-        # 检查小封面, 如果image cut为3，则下载小封面
-        if imagecut == 3:
-            small_cover_check(path, number, json_data['cover_small'], c_word, conf, filepath, conf.failed_folder())
-            fix_size(path + '/' + number + c_word + '-poster.jpg')
+
+        
         # creatFolder会返回番号路径
         image_download(json_data['cover'], number, c_word, path, conf, filepath, conf.failed_folder())
 
         # 裁剪图
-        cutImage(imagecut, path, number, c_word)
+        # 检查小封面, 如果image cut为3，则下载小封面，并对不符合比例的进行模糊处理
+        if imagecut == 3:
+            small_cover_check(path, number, json_data['cover_small'], c_word, conf, filepath, conf.failed_folder())
+            fix_size(path + '/' + number + c_word + '-poster.jpg')
+        #如果imagecut为2，则智能裁切
+        elif imagecut==2:
+            bdcut(path + '/' + number + c_word + '-fanart.jpg')
+            cutImage(imagecut, path, number, c_word)
+        elif imagecut==1:
+            cutImage(imagecut, path, number, c_word)
+        else:
+            print('imagecut参数为',imagecut,'配置错误')
 
         # 打印文件
         print_files(path, c_word, json_data['naming_rule'], part, cn_sub, json_data, filepath, conf.failed_folder(), tag, json_data['actor_list'], liuchu)
