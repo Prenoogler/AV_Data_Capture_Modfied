@@ -2,6 +2,8 @@
 
 基于AV_Data_Capture修改，感谢yoshiko2等各位大佬
 
+0.使用时请自行安装所需库
+
 1.重点提高了jav321的可用性
 
 2.针对'luxu','mium','sim','simm','gana','maan','heyzo','oretd'等等素人影片，使其能够直接搜刮高清封面poster，自动处理封面
@@ -52,7 +54,7 @@ CLI 版本
 * 用户在使用本软件时，若用户在当地产生一切违法行为由用户承担
 * 严禁用户将本软件使用于商业和个人其他意图
 * 源代码和二进制程序请在下载后24小时内删除
-* 本软件作者yoshiko2保留最终决定权和最终解释权
+* 本软件作者yoshiko2和本人保留最终决定权和最终解释权
 * 若用户不同意上述条款任意一条，请勿使用本软件
 ---
 When you view and download the source code or binary program of this project, it means that you have accepted the following terms
