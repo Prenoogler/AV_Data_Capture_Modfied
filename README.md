@@ -1,16 +1,20 @@
 # 修改内容
 
-基于AV_Data_Capture修改，感谢yoshiko2大佬
+基于AV_Data_Capture修改，感谢yoshiko2等各位大佬
 
 1.重点提高了jav321的可用性
 
-2.针对'luxu','mium','sim','simm','gana','maan','heyzo','oretd'等素人影片，使其能够直接搜刮高清封面poster，自动处理封面
+2.针对'luxu','mium','sim','simm','gana','maan','heyzo','oretd'等等素人影片，使其能够直接搜刮高清封面poster，自动处理封面
+
+4.增加对FC2CLUB镜像站的支持，目前几乎可以搜刮所有FC2影片
 
 3.修复Debug下程序闪退崩溃的bug
 
-4.增加有道翻译，若需要启用，到ADC_Function.py文件中，对有道翻译取消注释，并对谷歌翻译进行注释，同时需要配置有道翻译的api参数
+4.增加百度、有道翻译、彩云翻译引擎，若需要启用，到ADC_Function.py文件中，配置对应翻译的api参数，不配置默认google翻译
 
-2020.12.17软件可用，请忽略更新提示。
+5.无码影片增加百度AI智能裁切算法，若要启用，到core.py文件中，配置AipBodyAnalysis的api参数(AppID,API Key和secert key),api需要到百度AI人体分析申请。
+
+跟进原项目最新源码，对于目前原项目新特性（搜刮剧照和预览片等）没有需求故没有跟进，2020.1.6软件可用，请忽略更新提示。
 
 # AV Data Capture (CLI)
 
