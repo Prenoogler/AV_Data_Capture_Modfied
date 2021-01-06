@@ -4,15 +4,19 @@ sys.path.append('../')
 import json
 from bs4 import BeautifulSoup
 from lxml import html
-from ADC_function import post_html
+from ADC_function import *
+from WebCrawler import airav,airavcc
 
-suren=['luxu','mium','sim','simm','gana','maan','heyzo','oretd']
 
-
+suren=['luxu','mium','sim','simm','gana','maan','heyzo','ore',
+       'oretd','orec','mmgh','msfh','reg','ntk','ara','dcv','kwp']
 
 def main(number: str) -> json:
-    result = requests.post(url="https://www.jav321.com/search", data={"sn": number})
     fanhaozimu=''.join(x for x in number if x.isalpha())
+    airnumber=airavnumbermod(number,fanhaozimu)
+    
+    result = requests.post(url="https://www.jav321.com/search", data={"sn": number})
+    
     if fanhaozimu.lower() in suren:
         imagecutswitch=3
     else:
@@ -23,9 +27,9 @@ def main(number: str) -> json:
     if "/video/" in result.url:
         data = parse_info(soup)
         dic = {
-            "title": get_title(lx),
+            "title": get_title(lx,airnumber),
             "year": get_year(data),
-            "outline": get_outline(lx),
+            "outline": get_outline(lx,airnumber),
             "director": "",
             "cover": get_cover(lx),
             "imagecut": imagecutswitch,
@@ -39,9 +43,53 @@ def main(number: str) -> json:
         dic = {}
     return json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ':'))
 
+def airavnumbermod(number,fanhaozimu):
+    group={'luxu':'259luxu','mium':'300mium','gana':'200gana','maan':'300maan',
+           'ntk':'300ntk','dcv':'277dcv'}
+    if fanhaozimu.lower() in group.keys():
+        number=number.replace(fanhaozimu,group[fanhaozimu.lower()])
+        return number
+    else:
+        return number
 
-def get_title(lx: html.HtmlElement) -> str:
-    return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[1]/h3/text()")[0].strip()
+def airavcctitle(airnumber):
+ 
+    try:
+        search=requests.get('https://linesearch.airav.cc/ajax/data.php?act=s&w='+airnumber)
+        searchjson=json.loads(search.text)
+        link=searchjson['msgs'][1]['link']
+        htmlcode=get_html(link)
+        airavcctitle=airavcc.getTitle(htmlcode)
+        if airavcctitle!='':
+            return airavcctitle
+    except:
+        return 'error'
+
+def airavtitle(airnumber):
+
+    try:
+        htmlcode=get_html('https://cn.airav.wiki/video/' + airnumber)
+        airavtitle=airav.getTitle(htmlcode)
+        if airavtitle!='':
+            return airavtitle
+    except:
+        return 'error'
+
+def get_title(lx: html.HtmlElement,airnumber) -> str:
+    
+    if airavtitle(airnumber) not in ['','error',None]:
+        print('[+]正在从airav.wiki获取中文信息')
+        return airavtitle(airnumber)
+    else:
+        return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[1]/h3/text()")[0].strip()
+
+'''
+#airav正常访问时禁用airavcc,因为cc可能会识别错误
+    elif airavcctitle(airnumber) not in ['','error',None]:
+        print('[+]正在从airav.cc获取中文信息')
+        return airavcctitle(airnumber)
+'''
+        
 
 
 def parse_info(soup: BeautifulSoup) -> dict:
@@ -98,11 +146,47 @@ def get_cover_small(lx: html.HtmlElement) -> str:
         smallcoveradd=smallcoveradd.replace('pf_o1','pf_e')
     return smallcoveradd
 
-def get_outline(lx: html.HtmlElement) -> str:
+def airavccoutline(airnumber):
+ 
     try:
-        return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[3]/div/text()")[0]
+        search=requests.get('https://linesearch.airav.cc/ajax/data.php?act=s&w='+airnumber)
+        searchjson=json.loads(search.text)
+        link=searchjson['msgs'][1]['link']
+        htmlcode=get_html(link)
+        airavccoutline=airavcc.getOutline(htmlcode)
+        if airavccoutline!='':
+            return airavccoutline
     except:
-        return('none')
+        return 'error'
+
+def airavoutline(airnumber):
+
+    try:
+        htmlcode=get_html('https://cn.airav.wiki/video/' + airnumber)
+        airavoutline=airav.getOutline(htmlcode)
+        if airavoutline!='':
+            return airavoutline
+    except:
+        return 'error'
+
+
+
+def get_outline(lx: html.HtmlElement,airnumber) -> str:
+
+    if airavoutline(airnumber) not in ['','error',None]:
+        return airavoutline(airnumber)
+    else:
+        try:
+            return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[3]/div/text()")[0]
+        except:
+            return ''
+'''
+#与TITLE原因相同，避免识别错误
+    elif airavccoutline(airnumber) not in ['','error',None]:
+        return airavccoutline(airnumber)
+'''
+
+
 def get_series2(lx: html.HtmlElement) -> str:
     return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[1]/div[2]/a[11]/text()")[0]
 
@@ -171,4 +255,4 @@ def get_series(data: hash) -> str:
 
 
 if __name__ == "__main__":
-    print(main("soe-259"))
+    print(main("sdsi-019"))
