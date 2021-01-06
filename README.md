@@ -12,7 +12,7 @@
 
 4.增加百度、有道翻译、彩云翻译引擎，若需要启用，到ADC_Function.py文件中，配置对应翻译的api参数，不配置默认google翻译
 
-5.无码影片增加百度AI智能裁切算法，若要启用，到core.py文件中，配置AipBodyAnalysis的api参数(AppID,API Key和secert key),api需要到百度AI人体分析申请。
+5.对于FC2和无码影片增加百度AI智能裁切算法，若要启用，到core.py文件中，配置AipBodyAnalysis的api参数(AppID,API Key和secert key),api需要到百度AI人体分析申请。
 
 跟进原项目最新源码，对于目前原项目新特性（搜刮剧照和预览片等）没有需求故没有跟进，2020.1.6软件可用，请忽略更新提示。
 
